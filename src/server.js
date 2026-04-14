@@ -6,5 +6,5 @@ const app= express();
 const PORT =process.env.PORT
 app.listen(PORT,()=>{
     getConnection()
-    console.log('Conectado a traves del puerto: ${PORT}')
+    console.log(`Conectado a traves del puerto: ${PORT}`)
 })
