@@ -1,5 +1,5 @@
-import sql from 'mssql'
-import dotenv from 'dotenv'
+import sql from "mssql"
+import dotenv from "dotenv"
 
 dotenv.config()
 
@@ -9,17 +9,22 @@ const stringConnection = {
     server: process.env.SERVER,
     database: process.env.DATABASE,
     options: {
+        encrypt: false,
         trustServerCertificate: true
     }
 }
 
-export async function getConnection() {
+const poolPromise = sql.connect(stringConnection)
+
+async function getConnection() {
     try {
-        const conn = await sql.connect(stringConnection)
-        console.log('Conectado a la base de datos')
+        const conn = await poolPromise
+        console.log("Conectado a la base de datos")
         return conn
     } catch (error) {
-        console.error('Error al conectarse a la BD:', error)
+        console.error("Error al conectarse a la BD:", error)
         throw error
     }
 }
+
+export { sql, poolPromise, getConnection }
