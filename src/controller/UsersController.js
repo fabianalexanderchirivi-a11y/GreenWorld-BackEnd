@@ -22,6 +22,9 @@ const getUsers = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { correo, contrasena } = req.body
+        console.log("BODY RECIBIDO:", req.body)
+        console.log("CORREO RECIBIDO:", correo)
+        console.log("CONTRASENA RECIBIDA:", contrasena)
 
         if (!correo || !contrasena) {
             return res.status(400).json({
@@ -31,6 +34,7 @@ const loginUser = async (req, res) => {
         }
 
         const usuario = await buscarUsuarioPorCorreo(correo)
+        console.log("USUARIO ENCONTRADO:", usuario)
 
         if (!usuario) {
             return res.status(401).json({
@@ -39,14 +43,26 @@ const loginUser = async (req, res) => {
             })
         }
 
-        if (usuario.estado?.toLowerCase() !== "activo") {
+        const estadoUsuario = String(usuario.estado || '').trim().toLowerCase()
+        console.log("ESTADO ORIGINAL:", usuario.estado)
+        console.log("ESTADO LIMPIO:", estadoUsuario)
+
+        if (estadoUsuario !== "activo") {
             return res.status(403).json({
                 success: false,
                 message: "El usuario no esta activo"
             })
         }
 
-        const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena)
+        const hashGuardado = String(usuario.contrasena || '').trim()
+        console.log("HASH GUARDADO:", hashGuardado)
+        console.log("LARGO HASH:", hashGuardado.length)
+        console.log("INICIO HASH:", hashGuardado.substring(0, 4))
+        
+        const contrasenaValida = await bcrypt.compare(contrasena, hashGuardado)
+        console.log("CONTRASENA VALIDA:", contrasenaValida)
+
+        
 
         if (!contrasenaValida) {
             return res.status(401).json({
@@ -54,6 +70,7 @@ const loginUser = async (req, res) => {
                 message: "Correo o contrasena incorrectos"
             })
         }
+        console.log("JWT_SECRET EXISTE:", Boolean(process.env.JWT_SECRET))
 
         const token = jwt.sign(
             {
@@ -76,6 +93,7 @@ const loginUser = async (req, res) => {
             }
         })
     } catch (error) {
+        console.error("Error en loginUser:", error)
         return res.status(500).json({
             success: false,
             message: "Error en el servidor",

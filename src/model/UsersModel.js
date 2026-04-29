@@ -23,7 +23,7 @@ const buscarUsuarioPorCorreo = async (correo) => {
                     correo,
                     contrasena,
                     estado
-                FROM usuario
+                FROM usuarios
                 WHERE correo = @correo
             `)
 
