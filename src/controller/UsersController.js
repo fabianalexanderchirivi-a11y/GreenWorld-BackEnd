@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
-import { listarUsuarios, buscarUsuarioPorCorreo } from "../model/UsersModel.js"
+import { listarUsuarios, buscarUsuarioPorCorreo,insertarU,editarU,eliminarU } from "../model/UsersModel.js"
 
 const getUsers = async (req, res) => {
     try {
@@ -24,12 +24,12 @@ const loginUser = async (req, res) => {
         const { correo, contrasena } = req.body
         console.log("BODY RECIBIDO:", req.body)
         console.log("CORREO RECIBIDO:", correo)
-        console.log("CONTRASENA RECIBIDA:", contrasena)
+        console.log("CONTRASEÑA RECIBIDA:", contrasena)
 
         if (!correo || !contrasena) {
             return res.status(400).json({
                 success: false,
-                message: "Correo y contrasena son obligatorios"
+                message: "Correo y contraseña son obligatorios"
             })
         }
 
@@ -101,5 +101,30 @@ const loginUser = async (req, res) => {
         })
     }
 }
+const addUser= async(req,res)=>{
+   
+    try {
+        await insertarU(req.body)
+        res.status(201).json({message:'ciudad registrada'})
 
-export { getUsers, loginUser }
+
+    } catch (error) {
+        res.status(500).json({message:'error al insertar un nuevo usuario'})
+        
+    }
+}
+
+const delateC= async(req,res)=>{
+   
+    try {
+        await eliminarU(req.body)
+        res.status(201).json({message:'usuario eliminada'})
+
+
+    } catch (error) {
+        res.status(500).json({message:'error al eliminar usuario'})
+        
+    }
+}
+
+export { getUsers, loginUser,addUser,delateC}
