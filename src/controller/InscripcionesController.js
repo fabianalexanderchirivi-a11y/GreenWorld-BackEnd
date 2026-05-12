@@ -1,20 +1,165 @@
-import { listarInscripciones } from "../model/InscripcionesModel.js"
+import {
+    listarInscripciones,
+    insertarInscripcion,
+    editarInscripcion,
+    eliminarInscripcion
+} from "../model/InscripcionesModel.js"
+
+const obtenerMensajeError = (error) => (
+    error.originalError?.info?.message ||
+    error.precedingErrors?.[0]?.originalError?.info?.message ||
+    error.message
+)
+
+const esNoEncontrado = (mensaje) => /no existe|no encontrado|not found/i.test(mensaje || "")
+
+const validarEnteroPositivo = (valor, nombreCampo) => {
+    const numero = Number(valor)
+
+    if (!Number.isInteger(numero) || numero <= 0) {
+        return { error: `El ${nombreCampo} no es valido` }
+    }
+
+    return { valor: numero }
+}
+
+const prepararInscripcion = (body) => {
+    const idUsuario = validarEnteroPositivo(body.id_usuario, "id_usuario")
+    const idCurso = validarEnteroPositivo(body.id_curso, "id_curso")
+    const progreso = Number(body.progreso_general)
+    const fecha = body.fecha_ultima_actividad ? new Date(body.fecha_ultima_actividad) : null
+    const inscripcion = {
+        id_usuario: idUsuario.valor,
+        id_curso: idCurso.valor,
+        estado: body.estado?.trim(),
+        progreso_general: progreso,
+        fecha_ultima_actividad: fecha
+    }
+    const errores = []
+
+    if (idUsuario.error) errores.push(idUsuario.error)
+    if (idCurso.error) errores.push(idCurso.error)
+    if (!inscripcion.estado) errores.push("Falta estado")
+    if (!Number.isFinite(progreso)) errores.push("El progreso_general no es valido")
+    if (!fecha || Number.isNaN(fecha.getTime())) errores.push("La fecha_ultima_actividad no es valida")
+
+    return { inscripcion, errores }
+}
 
 const getInscripciones = async (req, res) => {
     try {
         const inscripciones = await listarInscripciones()
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
+            message: "Inscripciones obtenidas correctamente",
             data: inscripciones
         })
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Error al obtener las inscripciones",
-            error: error.message
+            error: obtenerMensajeError(error)
         })
     }
 }
 
-export { getInscripciones }
+const addInscripcion = async (req, res) => {
+    try {
+        const { inscripcion, errores } = prepararInscripcion(req.body)
+
+        if (errores.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: errores.join(", ")
+            })
+        }
+
+        const data = await insertarInscripcion(inscripcion)
+
+        return res.status(201).json({
+            success: true,
+            message: "Inscripcion creada correctamente",
+            data
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al crear la inscripcion",
+            error: mensajeError
+        })
+    }
+}
+
+const updateInscripcion = async (req, res) => {
+    try {
+        const id = validarEnteroPositivo(req.params.id, "id_inscripcion")
+
+        if (id.error) {
+            return res.status(400).json({
+                success: false,
+                message: id.error
+            })
+        }
+
+        const { inscripcion, errores } = prepararInscripcion(req.body)
+
+        if (errores.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: errores.join(", ")
+            })
+        }
+
+        const data = await editarInscripcion(id.valor, inscripcion)
+
+        return res.status(200).json({
+            success: true,
+            message: "Inscripcion actualizada correctamente",
+            data
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+        const status = esNoEncontrado(mensajeError) ? 404 : 500
+
+        return res.status(status).json({
+            success: false,
+            message: mensajeError || "Error al actualizar la inscripcion",
+            error: mensajeError
+        })
+    }
+}
+
+const deleteInscripcion = async (req, res) => {
+    try {
+        const id = validarEnteroPositivo(req.params.id, "id_inscripcion")
+
+        if (id.error) {
+            return res.status(400).json({
+                success: false,
+                message: id.error
+            })
+        }
+
+        const data = await eliminarInscripcion(id.valor)
+
+        return res.status(200).json({
+            success: true,
+            message: "Inscripcion eliminada o desactivada correctamente",
+            data
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+        const status = esNoEncontrado(mensajeError) ? 404 : 500
+
+        return res.status(status).json({
+            success: false,
+            message: mensajeError || "Error al eliminar la inscripcion",
+            error: mensajeError
+        })
+    }
+}
+
+export { getInscripciones, addInscripcion, updateInscripcion, deleteInscripcion }
