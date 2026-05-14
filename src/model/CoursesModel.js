@@ -10,6 +10,16 @@ const listarCursos = async () => {
     }
 }
 
+const listarCursosAdmin = async () => {
+    try {
+        const con = await poolPromise
+        const result = await con.request().execute("dbo.usp_ListarCursos")
+        return result.recordset
+    } catch (error) {
+        throw error
+    }
+}
+
 const insertarCurso = async (curso) => {
     try {
         const con = await poolPromise
@@ -19,6 +29,7 @@ const insertarCurso = async (curso) => {
             .input("imagen", sql.NVarChar(255), curso.imagen)
             .input("duracion_estimada", sql.NVarChar(50), curso.duracion_estimada)
             .input("nivel", sql.NVarChar(20), curso.nivel)
+            .input("categoria", sql.NVarChar(100), curso.categoria)
             .input("estado", sql.NVarChar(20), curso.estado)
             .execute("dbo.usp_InsertarCurso")
 
@@ -38,6 +49,7 @@ const editarCurso = async (id_curso, curso) => {
             .input("imagen", sql.NVarChar(255), curso.imagen)
             .input("duracion_estimada", sql.NVarChar(50), curso.duracion_estimada)
             .input("nivel", sql.NVarChar(20), curso.nivel)
+            .input("categoria", sql.NVarChar(100), curso.categoria)
             .input("estado", sql.NVarChar(20), curso.estado)
             .execute("dbo.usp_EditarCurso")
 
@@ -60,4 +72,4 @@ const eliminarCurso = async (id_curso) => {
     }
 }
 
-export { listarCursos, insertarCurso, editarCurso, eliminarCurso }
+export { listarCursos, listarCursosAdmin, insertarCurso, editarCurso, eliminarCurso }

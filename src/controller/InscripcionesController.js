@@ -2,7 +2,11 @@ import {
     listarInscripciones,
     insertarInscripcion,
     editarInscripcion,
-    eliminarInscripcion
+    eliminarInscripcion,
+    listarCursosPorUsuario,
+    iniciarCursoUsuario,
+    actualizarProgresoCursoUsuario,
+    cancelarCursoUsuario
 } from "../model/InscripcionesModel.js"
 
 const obtenerMensajeError = (error) => (
@@ -162,4 +166,130 @@ const deleteInscripcion = async (req, res) => {
     }
 }
 
-export { getInscripciones, addInscripcion, updateInscripcion, deleteInscripcion }
+const getMyCourses = async (req, res) => {
+    try {
+        const cursos = await listarCursosPorUsuario(req.usuario.id_usuario)
+
+        return res.status(200).json({
+            success: true,
+            message: "Cursos del usuario obtenidos correctamente",
+            data: cursos
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener tus cursos",
+            error: obtenerMensajeError(error)
+        })
+    }
+}
+
+const startCourse = async (req, res) => {
+    try {
+        const id = validarEnteroPositivo(req.params.id, "id_curso")
+
+        if (id.error) {
+            return res.status(400).json({
+                success: false,
+                message: id.error
+            })
+        }
+
+        const curso = await iniciarCursoUsuario(req.usuario.id_usuario, id.valor)
+
+        return res.status(200).json({
+            success: true,
+            message: "Curso iniciado correctamente",
+            data: curso
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al iniciar el curso",
+            error: mensajeError
+        })
+    }
+}
+
+const updateCourseProgress = async (req, res) => {
+    try {
+        const id = validarEnteroPositivo(req.params.id, "id_curso")
+
+        if (id.error) {
+            return res.status(400).json({
+                success: false,
+                message: id.error
+            })
+        }
+
+        const estado_progreso = req.body.estado_progreso || "en_progreso"
+
+        if (!["en_progreso", "terminado"].includes(estado_progreso)) {
+            return res.status(400).json({
+                success: false,
+                message: "El estado_progreso no es valido"
+            })
+        }
+
+        const curso = await actualizarProgresoCursoUsuario(req.usuario.id_usuario, id.valor, {
+            estado_progreso,
+            porcentaje_avance: req.body.porcentaje_avance
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Progreso actualizado correctamente",
+            data: curso
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al actualizar el progreso",
+            error: mensajeError
+        })
+    }
+}
+
+const cancelCourse = async (req, res) => {
+    try {
+        const id = validarEnteroPositivo(req.params.id, "id_curso")
+
+        if (id.error) {
+            return res.status(400).json({
+                success: false,
+                message: id.error
+            })
+        }
+
+        const curso = await cancelarCursoUsuario(req.usuario.id_usuario, id.valor)
+
+        return res.status(200).json({
+            success: true,
+            message: "Curso cancelado correctamente",
+            data: curso
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al cancelar el curso",
+            error: mensajeError
+        })
+    }
+}
+
+export {
+    getInscripciones,
+    addInscripcion,
+    updateInscripcion,
+    deleteInscripcion,
+    getMyCourses,
+    startCourse,
+    updateCourseProgress,
+    cancelCourse
+}

@@ -74,7 +74,8 @@ const loginUser = async (req, res) => {
         const token = jwt.sign(
             {
                 id_usuario: usuario.id_usuario,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: usuario.rol || "usuario"
             },
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
@@ -88,7 +89,8 @@ const loginUser = async (req, res) => {
                 id_usuario: usuario.id_usuario,
                 nombre: usuario.nombre,
                 apellido: usuario.apellido,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: usuario.rol || "usuario"
             }
         })
     } catch (error) {

@@ -1,5 +1,6 @@
 import {
     listarCursos,
+    listarCursosAdmin,
     insertarCurso,
     editarCurso,
     eliminarCurso
@@ -30,11 +31,12 @@ const prepararCurso = (body) => {
         imagen: body.imagen?.trim(),
         duracion_estimada: body.duracion_estimada?.trim(),
         nivel: body.nivel?.trim(),
-        estado: body.estado?.trim()
+        categoria: body.categoria?.trim(),
+        estado: body.estado?.trim() || "publicado"
     }
 
     const faltantes = Object.entries(curso)
-        .filter(([, value]) => !value)
+        .filter(([key, value]) => !["imagen", "duracion_estimada"].includes(key) && !value)
         .map(([key]) => key)
 
     return { curso, faltantes }
@@ -43,6 +45,28 @@ const prepararCurso = (body) => {
 const getCourses = async (req, res) => {
     try {
         const courses = await listarCursos()
+        const cursosActivos = courses.filter((course) => {
+            const estado = String(course.estado || "activo").trim().toLowerCase()
+            return ["activo", "disponible", "publicado"].includes(estado)
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Cursos obtenidos correctamente",
+            data: cursosActivos
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener los cursos",
+            error: obtenerMensajeError(error)
+        })
+    }
+}
+
+const getCoursesAdmin = async (req, res) => {
+    try {
+        const courses = await listarCursosAdmin()
 
         return res.status(200).json({
             success: true,
@@ -156,4 +180,4 @@ const deleteCourse = async (req, res) => {
     }
 }
 
-export { getCourses, addCourse, updateCourse, deleteCourse }
+export { getCourses, getCoursesAdmin, addCourse, updateCourse, deleteCourse }
