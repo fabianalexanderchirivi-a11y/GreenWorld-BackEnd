@@ -24,8 +24,25 @@ BEGIN
 END;
 GO
 
--- Para habilitar un administrador real, ajusta el correo existente:
--- UPDATE dbo.usuarios SET rol = 'admin' WHERE correo = 'admin@greenworld.com';
+
+GO
+
+CREATE OR ALTER PROCEDURE dbo.usp_ListarUsuarios
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        id_usuario,
+        nombre,
+        apellido,
+        correo,
+        fecha_registro,
+        estado,
+        rol
+    FROM dbo.usuarios
+    ORDER BY id_usuario DESC;
+END;
 -- GO
 
 IF COL_LENGTH('dbo.cursos', 'categoria') IS NULL
