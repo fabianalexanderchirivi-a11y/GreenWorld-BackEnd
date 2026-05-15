@@ -96,6 +96,66 @@ const listarCursosPorUsuario = async (id_usuario) => {
     }
 }
 
+const listarInscripcionesCursosAdmin = async () => {
+    try {
+        const con = await poolPromise
+        const result = await con.request().query(`
+            SELECT
+                i.id_inscripcion,
+                i.id_usuario,
+                u.nombre,
+                u.apellido,
+                u.correo,
+                i.id_curso,
+                c.titulo AS curso,
+                CASE
+                    WHEN i.estado = 'completado' THEN 'terminado'
+                    ELSE i.estado
+                END AS estado_progreso,
+                i.progreso_general AS porcentaje_avance,
+                i.fecha_inscripcion AS fecha_inicio,
+                i.fecha_finalizacion,
+                i.fecha_ultima_actividad
+            FROM dbo.inscripciones i
+            INNER JOIN dbo.usuarios u ON u.id_usuario = i.id_usuario
+            INNER JOIN dbo.cursos c ON c.id_curso = i.id_curso
+            ORDER BY i.fecha_ultima_actividad DESC, i.fecha_inscripcion DESC
+        `)
+
+        return result.recordset
+    } catch (error) {
+        throw error
+    }
+}
+
+const listarInscripcionesRetosAdmin = async () => {
+    try {
+        const con = await poolPromise
+        const result = await con.request().query(`
+            SELECT
+                ur.id_usuario_reto,
+                ur.id_usuario,
+                u.nombre,
+                u.apellido,
+                u.correo,
+                ur.id_reto,
+                r.titulo AS reto,
+                ur.estado_progreso,
+                ur.fecha_inicio,
+                ur.fecha_finalizacion,
+                ur.fecha_ultima_actividad
+            FROM dbo.usuario_retos ur
+            INNER JOIN dbo.usuarios u ON u.id_usuario = ur.id_usuario
+            INNER JOIN dbo.retos r ON r.id_reto = ur.id_reto
+            ORDER BY ur.fecha_ultima_actividad DESC, ur.fecha_inicio DESC
+        `)
+
+        return result.recordset
+    } catch (error) {
+        throw error
+    }
+}
+
 const iniciarCursoUsuario = async (id_usuario, id_curso) => {
     try {
         const con = await poolPromise
@@ -272,6 +332,8 @@ export {
     editarInscripcion,
     eliminarInscripcion,
     listarCursosPorUsuario,
+    listarInscripcionesCursosAdmin,
+    listarInscripcionesRetosAdmin,
     iniciarCursoUsuario,
     actualizarProgresoCursoUsuario,
     cancelarCursoUsuario

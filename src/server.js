@@ -37,5 +37,4 @@ app.get(/^(?!\/api).*/, (req, res) => {
 app.listen(PORT, async () => {
     await getConnection()
     console.log(`Conectado a traves del puerto: ${PORT}`)
-    console.log(`Frontend servido desde: ${frontendDistPath}`)
 })

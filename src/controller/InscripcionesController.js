@@ -4,6 +4,8 @@ import {
     editarInscripcion,
     eliminarInscripcion,
     listarCursosPorUsuario,
+    listarInscripcionesCursosAdmin,
+    listarInscripcionesRetosAdmin,
     iniciarCursoUsuario,
     actualizarProgresoCursoUsuario,
     cancelarCursoUsuario
@@ -184,6 +186,42 @@ const getMyCourses = async (req, res) => {
     }
 }
 
+const getAdminCourseEnrollments = async (req, res) => {
+    try {
+        const inscripciones = await listarInscripcionesCursosAdmin()
+
+        return res.status(200).json({
+            success: true,
+            message: "Inscripciones de cursos obtenidas correctamente",
+            data: inscripciones
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener las inscripciones de cursos",
+            error: obtenerMensajeError(error)
+        })
+    }
+}
+
+const getAdminChallengeEnrollments = async (req, res) => {
+    try {
+        const inscripciones = await listarInscripcionesRetosAdmin()
+
+        return res.status(200).json({
+            success: true,
+            message: "Inscripciones de retos obtenidas correctamente",
+            data: inscripciones
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener las inscripciones de retos",
+            error: obtenerMensajeError(error)
+        })
+    }
+}
+
 const startCourse = async (req, res) => {
     try {
         const id = validarEnteroPositivo(req.params.id, "id_curso")
@@ -289,6 +327,8 @@ export {
     updateInscripcion,
     deleteInscripcion,
     getMyCourses,
+    getAdminCourseEnrollments,
+    getAdminChallengeEnrollments,
     startCourse,
     updateCourseProgress,
     cancelCourse

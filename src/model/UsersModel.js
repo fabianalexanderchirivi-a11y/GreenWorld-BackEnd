@@ -85,10 +85,32 @@ const eliminarUsuario = async (id_usuario) => {
     }
 }
 
+const desactivarCuentaUsuario = async (id_usuario) => {
+    try {
+        const con = await poolPromise
+        const result = await con.request()
+            .input("id_usuario", sql.Int, id_usuario)
+            .query(`
+                UPDATE dbo.usuarios
+                SET estado = 'inactivo'
+                WHERE id_usuario = @id_usuario;
+
+                SELECT id_usuario, nombre, apellido, correo, estado, rol
+                FROM dbo.usuarios
+                WHERE id_usuario = @id_usuario;
+            `)
+
+        return result.recordset[0] || null
+    } catch (error) {
+        throw error
+    }
+}
+
 export {
     listarUsuarios,
     buscarUsuarioPorCorreo,
     insertarUsuario,
     editarUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    desactivarCuentaUsuario
 }

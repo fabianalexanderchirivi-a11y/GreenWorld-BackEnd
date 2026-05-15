@@ -5,7 +5,8 @@ import {
     buscarUsuarioPorCorreo,
     insertarUsuario,
     editarUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    desactivarCuentaUsuario
 } from "../model/UsersModel.js"
 
 const obtenerMensajeError = (error) => (
@@ -204,6 +205,54 @@ const updateUser = async (req, res) => {
     }
 }
 
+const updateMe = async (req, res) => {
+    try {
+        const id_usuario = Number(req.usuario?.id_usuario)
+        const { nombre, apellido } = req.body
+
+        if (!Number.isInteger(id_usuario) || id_usuario <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "El token no contiene un usuario valido"
+            })
+        }
+
+        if (!nombre?.trim() && !apellido?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Debes enviar nombre o apellido para actualizar"
+            })
+        }
+
+        await editarUsuario(id_usuario, {
+            nombre,
+            apellido,
+            correo: null,
+            contrasena: null
+        })
+
+        return res.status(200).json({
+            success: true,
+            message: "Perfil actualizado correctamente",
+            data: {
+                id_usuario,
+                nombre,
+                apellido,
+                correo: req.usuario.correo,
+                rol: req.usuario.rol || "usuario"
+            }
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al actualizar tu perfil",
+            error: mensajeError
+        })
+    }
+}
+
 const deleteUser = async (req, res) => {
     try {
         const id_usuario = Number(req.params.id)
@@ -232,4 +281,33 @@ const deleteUser = async (req, res) => {
     }
 }
 
-export { getUsers, loginUser, addUser, updateUser, deleteUser }
+const deleteMe = async (req, res) => {
+    try {
+        const id_usuario = Number(req.usuario?.id_usuario)
+
+        if (!Number.isInteger(id_usuario) || id_usuario <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "El token no contiene un usuario valido"
+            })
+        }
+
+        const usuario = await desactivarCuentaUsuario(id_usuario)
+
+        return res.status(200).json({
+            success: true,
+            message: "Tu cuenta fue desactivada correctamente",
+            data: usuario
+        })
+    } catch (error) {
+        const mensajeError = obtenerMensajeError(error)
+
+        return res.status(500).json({
+            success: false,
+            message: mensajeError || "Error al desactivar tu cuenta",
+            error: mensajeError
+        })
+    }
+}
+
+export { getUsers, loginUser, addUser, updateUser, updateMe, deleteUser, deleteMe }
