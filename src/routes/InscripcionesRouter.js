@@ -15,10 +15,10 @@ import { verificarToken, verificarAdmin } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
-router.get("/inscripciones", getInscripciones)
-router.post("/inscripciones", addInscripcion)
-router.put("/inscripciones/:id", updateInscripcion)
-router.delete("/inscripciones/:id", deleteInscripcion)
+router.get("/inscripciones", verificarToken, verificarAdmin, getInscripciones)
+router.post("/inscripciones", verificarToken, verificarAdmin, addInscripcion)
+router.put("/inscripciones/:id", verificarToken, verificarAdmin, updateInscripcion)
+router.delete("/inscripciones/:id", verificarToken, verificarAdmin, deleteInscripcion)
 router.get("/admin/inscripciones/cursos", verificarToken, verificarAdmin, getAdminCourseEnrollments)
 router.get("/admin/inscripciones/retos", verificarToken, verificarAdmin, getAdminChallengeEnrollments)
 router.get("/usuarios/me/cursos", verificarToken, getMyCourses)
